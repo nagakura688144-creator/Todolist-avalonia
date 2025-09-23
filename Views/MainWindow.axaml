@@ -1,0 +1,50 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:vm="using:TodoApp.ViewModels"
+        x:Class="TodoApp.Views.MainWindow"
+        Width="800" Height="600" Title="Avalonia To‑Do">
+  <Design.DataContext>
+    <vm:MainWindowViewModel/>
+  </Design.DataContext>
+  <Window.DataContext>
+    <vm:MainWindowViewModel/>
+  </Window.DataContext>
+
+  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*">
+    <!-- Input Row -->
+    <StackPanel Orientation="Horizontal" Margin="12" Spacing="8">
+      <TextBox Width="350" Watermark="Add a new task..." Text="{Binding NewTitle}"/>
+      <DatePicker SelectedDate="{Binding NewDue}"/>
+      <Button Content="Add" Command="{Binding AddCommand}"/>
+    </StackPanel>
+
+    <!-- Controls Row -->
+    <StackPanel Orientation="Horizontal" Margin="12,0,12,8" Grid.Row="1" Spacing="8">
+      <ComboBox Width="150" ItemsSource="{Binding FilterModes}" SelectedItem="{Binding Filter}"/>
+      <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}"/>
+      <Button Content="Clear Completed" Command="{Binding ClearCompletedCommand}"/>
+      <Button Content="Save" Command="{Binding SaveCommand}"/>
+      <Button Content="Load" Command="{Binding LoadCommand}"/>
+      <TextBlock Text="{Binding Summary}" Margin="16,0,0,0" VerticalAlignment="Center"/>
+    </StackPanel>
+
+    <!-- List Row -->
+    <ListBox Grid.Row="2" ItemsSource="{Binding VisibleItems}" SelectedItem="{Binding SelectedItem}">
+      <ListBox.ItemTemplate>
+        <DataTemplate>
+          <Grid ColumnDefinitions="Auto,*,Auto" Margin="6">
+            <CheckBox IsChecked="{Binding IsDone}" VerticalAlignment="Center"/>
+            <StackPanel Grid.Column="1">
+              <TextBlock Text="{Binding Title}"/>
+              <TextBlock Foreground="Gray" FontSize="11"
+                         Text="{Binding Due, StringFormat='Due: {0:yyyy-MM-dd}'}"/>
+            </StackPanel>
+            <TextBlock Grid.Column="2" Text="{Binding IsDone}" Foreground="Gray" VerticalAlignment="Center"/>
+          </Grid>
+        </DataTemplate>
+      </ListBox.ItemTemplate>
+    </ListBox>
+  </Grid>
+</Window>
