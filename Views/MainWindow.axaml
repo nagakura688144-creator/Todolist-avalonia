@@ -2,49 +2,121 @@
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="using:TodoApp.ViewModels"
+        xmlns:vm="clr-namespace:TodoApp.ViewModels"
         x:Class="TodoApp.Views.MainWindow"
-        Width="800" Height="600" Title="Avalonia To‑Do">
+        Width="900" Height="640"
+        mc:Ignorable="d">
   <Design.DataContext>
     <vm:MainWindowViewModel/>
   </Design.DataContext>
-  <Window.DataContext>
-    <vm:MainWindowViewModel/>
-  </Window.DataContext>
 
-  <Grid RowDefinitions="Auto,Auto,*" ColumnDefinitions="*">
-    <!-- Input Row -->
-    <StackPanel Orientation="Horizontal" Margin="12" Spacing="8">
-      <TextBox Width="350" Watermark="Add a new task..." Text="{Binding NewTitle}"/>
-      <DatePicker SelectedDate="{Binding NewDue}"/>
-      <Button Content="Add" Command="{Binding AddCommand}"/>
+  <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20">
+    <!-- ヘッダー -->
+    <DockPanel Grid.Row="0" Margin="0,0,0,12">
+      <TextBlock Classes="h1" Text="To-Do" DockPanel.Dock="Left"/>
+      <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Right">
+        <TextBlock Classes="caption" VerticalAlignment="Center"
+                   Text="{Binding ItemsCountText}"/>
+        <!-- テーマ切替 -->
+        <ToggleSwitch Content="Dark" IsChecked="{Binding IsDarkTheme}"
+                      VerticalAlignment="Center"/>
+      </StackPanel>
+    </DockPanel>
+
+    <!-- 入力エリア -->
+    <Border Grid.Row="1" Classes="todo-card">
+      <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
+        <TextBox Watermark="Task title" Text="{Binding NewTitle}"/>
+        <DatePicker Grid.Column="1" SelectedDate="{Binding NewDueDate}"/>
+        <Button Grid.Column="2" Content="Add" Classes="accent"
+                Command="{Binding AddCommand}"/>
+        <Button Grid.Column="3" Content="Clear"
+                Command="{Binding ClearInputCommand}"/>
+      </Grid>
+    </Border>
+
+    <!-- フィルタ（セグメント） -->
+    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left"
+                Margin="0,72,0,0" Spacing="8">
+      <ToggleButton Content="All"     Classes="segment"
+                    IsChecked="{Binding IsFilterAll}"/>
+      <ToggleButton Content="Active"  Classes="segment"
+                    IsChecked="{Binding IsFilterActive}"/>
+      <ToggleButton Content="Completed" Classes="segment"
+                    IsChecked="{Binding IsFilterCompleted}"/>
     </StackPanel>
 
-    <!-- Controls Row -->
-    <StackPanel Orientation="Horizontal" Margin="12,0,12,8" Grid.Row="1" Spacing="8">
-      <ComboBox Width="150" ItemsSource="{Binding FilterModes}" SelectedItem="{Binding Filter}"/>
-      <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}"/>
-      <Button Content="Clear Completed" Command="{Binding ClearCompletedCommand}"/>
-      <Button Content="Save" Command="{Binding SaveCommand}"/>
-      <Button Content="Load" Command="{Binding LoadCommand}"/>
-      <TextBlock Text="{Binding Summary}" Margin="16,0,0,0" VerticalAlignment="Center"/>
-    </StackPanel>
+    <!-- リスト -->
+    <ScrollViewer Grid.Row="2" Margin="0,8,0,8">
+      <ItemsControl Items="{Binding ViewItems}">
+        <ItemsControl.ItemTemplate>
+          <DataTemplate>
+            <Border Classes="todo-card">
+              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
+                <CheckBox IsChecked="{Binding IsCompleted}"
+                          Command="{Binding $parent[Window].DataContext.ToggleCompletedCommand}"
+                          CommandParameter="{Binding .}"/>
+                <StackPanel Grid.Column="1" Spacing="4">
+                  <TextBlock Text="{Binding Title}">
+                    <TextBlock.Styles>
+                      <Style Selector="TextBlock">
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsCompleted}" Value="True">
+                            <Setter Property="Classes" Value="todo-title-completed"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </TextBlock.Styles>
+                  </TextBlock>
+                  <!-- 期日Pill（期限切れは赤） -->
+                  <Border Classes="due-pill">
+                    <Border.Styles>
+                      <Style Selector="Border">
+                        <Style.Triggers>
+                          <DataTrigger Binding="{Binding IsOverdue}" Value="True">
+                            <Setter Property="Classes" Value="due-pill overdue"/>
+                          </DataTrigger>
+                        </Style.Triggers>
+                      </Style>
+                    </Border.Styles>
+                    <TextBlock Classes="caption"
+                               Text="{Binding DueLabel}"/>
+                  </Border>
+                </StackPanel>
 
-    <!-- List Row -->
-    <ListBox Grid.Row="2" ItemsSource="{Binding VisibleItems}" SelectedItem="{Binding SelectedItem}">
-      <ListBox.ItemTemplate>
-        <DataTemplate>
-          <Grid ColumnDefinitions="Auto,*,Auto" Margin="6">
-            <CheckBox IsChecked="{Binding IsDone}" VerticalAlignment="Center"/>
-            <StackPanel Grid.Column="1">
-              <TextBlock Text="{Binding Title}"/>
-              <TextBlock Foreground="Gray" FontSize="11"
-                         Text="{Binding Due, StringFormat='Due: {0:yyyy-MM-dd}'}"/>
-            </StackPanel>
-            <TextBlock Grid.Column="2" Text="{Binding IsDone}" Foreground="Gray" VerticalAlignment="Center"/>
-          </Grid>
-        </DataTemplate>
-      </ListBox.ItemTemplate>
-    </ListBox>
+                <!-- アクション（ホバーで見せる雰囲気） -->
+                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
+                            Opacity="0.0">
+                  <Button Content="Edit"
+                          Command="{Binding $parent[Window].DataContext.EditCommand}"
+                          CommandParameter="{Binding .}"/>
+                  <Button Content="Delete"
+                          Command="{Binding $parent[Window].DataContext.DeleteCommand}"
+                          CommandParameter="{Binding .}"/>
+                </StackPanel>
+              </Grid>
+
+              <!-- ホバー時にアクション表示 -->
+              <Border.Styles>
+                <Style Selector="Border.todo-card:pointerover StackPanel:nth-child(1)~StackPanel">
+                  <Setter Property="Opacity" Value="1.0"/>
+                </Style>
+              </Border.Styles>
+            </Border>
+          </DataTemplate>
+        </ItemsControl.ItemTemplate>
+        <ItemsControl.Transitions>
+          <Transitions>
+            <CrossFade Duration="0:0:0.12"/>
+          </Transitions>
+        </ItemsControl.Transitions>
+      </ItemsControl>
+    </ScrollViewer>
+
+    <!-- ステータスバー -->
+    <DockPanel Grid.Row="3">
+      <TextBlock Classes="caption" Text="{Binding StatusText}" DockPanel.Dock="Left"/>
+      <TextBlock Classes="caption" Text="{Binding StoragePath}" DockPanel.Dock="Right"/>
+    </DockPanel>
   </Grid>
 </Window>

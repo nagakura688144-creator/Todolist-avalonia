@@ -1,28 +1,16 @@
-using ReactiveUI;
-
-namespace TodoApp.Models;
-
-public class TodoItem : ReactiveObject
+using System;
+using System.Text.Json.Serialization;
+// ★ namespace はあなたのプロジェクトに合わせる（例: TodolistAvalonia.Models）
+namespace TodolistAvalonia.Models
 {
-    private string _title = string.Empty;
-    private bool _isDone;
-    private DateTimeOffset? _due;
-
-    public string Title
+    public class TodoItem
     {
-        get => _title;
-        set => this.RaiseAndSetIfChanged(ref _title, value);
-    }
+        public Guid Id { get; set; } = Guid.NewGuid();
+        public string Title { get; set; } = "";
+        public bool IsCompleted { get; set; }
+        public DateTimeOffset? DueDate { get; set; }   // ← 期日
 
-    public bool IsDone
-    {
-        get => _isDone;
-        set => this.RaiseAndSetIfChanged(ref _isDone, value);
-    }
-
-    public DateTimeOffset? Due
-    {
-        get => _due;
-        set => this.RaiseAndSetIfChanged(ref _due, value);
+        [JsonIgnore] public string DueLabel => DueDate.HasValue ? $"Due: {DueDate.Value:MMM dd}" : "No due";
+        [JsonIgnore] public bool IsOverdue => DueDate.HasValue && !IsCompleted && DueDate.Value.Date < DateTimeOffset.Now.Date;
     }
 }
