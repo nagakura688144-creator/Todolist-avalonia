@@ -1,5 +1,4 @@
-﻿using Avalonia;
-using Avalonia.Styling;
+// ViewModels/MainWindowViewModel.cs
 using ReactiveUI;
 using System;
 using System.Collections.ObjectModel;
@@ -17,147 +16,24 @@ namespace TodoApp.ViewModels
         private readonly TodoController _controller;
         private readonly ITodoStorage _storage;
 
-        // ====== コレクション & フィルタ ======
-        public ObservableCollection<TodoItem> Items { get; } = new();
-
-        public ReadOnlyObservableCollection<TodoItem> ViewItems
-            => new ReadOnlyObservableCollection<TodoItem>(new ObservableCollection<TodoItem>(
-                IsFilterActive ? Items.Where(i => !i.IsCompleted) :
-                IsFilterCompleted ? Items.Where(i => i.IsCompleted) :
-                Items));
-
-        private void RefreshView()
-        {
-            // ViewItems は都度生成しているので Items が変わったら通知だけ送り直す
-            this.RaisePropertyChanged(nameof(ViewItems));
-            this.RaisePropertyChanged(nameof(ItemsCountText));
-        }
-
-        // ====== 入力エリア ======
-        private string? _newTitle;
-        public string? NewTitle
-        {
-            get => _newTitle;
-            set => this.RaiseAndSetIfChanged(ref _newTitle, value);
-        }
-
-        private DateTimeOffset? _newDueDate;
-        public DateTimeOffset? NewDueDate
-        {
-            get => _newDueDate;
-            set => this.RaiseAndSetIfChanged(ref _newDueDate, value);
-        }
-
-        // ====== フィルタ（セグメント） ======
-        private bool _isFilterAll = true;
-        public bool IsFilterAll
-        {
-            get => _isFilterAll;
-            set
-            {
-                if (this.RaiseAndSetIfChanged(ref _isFilterAll, value) && value)
-                {
-                    IsFilterActive = false; IsFilterCompleted = false;
-                    RefreshView();
-                }
-            }
-        }
-
-        private bool _isFilterActive;
-        public bool IsFilterActive
-        {
-            get => _isFilterActive;
-            set
-            {
-                if (this.RaiseAndSetIfChanged(ref _isFilterActive, value) && value)
-                {
-                    IsFilterAll = false; IsFilterCompleted = false;
-                    RefreshView();
-                }
-            }
-        }
-
-        private bool _isFilterCompleted;
-        public bool IsFilterCompleted
-        {
-            get => _isFilterCompleted;
-            set
-            {
-                if (this.RaiseAndSetIfChanged(ref _isFilterCompleted, value) && value)
-                {
-                    IsFilterAll = false; IsFilterActive = false;
-                    RefreshView();
-                }
-            }
-        }
-
-        // ====== テーマ切替 ======
-        private bool _isDarkTheme;
-        public bool IsDarkTheme
-        {
-            get => _isDarkTheme;
-            set
-            {
-                if (this.RaiseAndSetIfChanged(ref _isDarkTheme, value))
-                {
-                    (Application.Current as Application)!.RequestedThemeVariant =
-                        value ? ThemeVariant.Dark : ThemeVariant.Light;
-                }
-            }
-        }
-
-        // ====== ステータス表示 ======
-        private DateTime _lastSaved = DateTime.Now;
-        public string ItemsCountText => $"{Items.Count} tasks";
-        public string StatusText => $"Saved {_lastSaved:t}";
-        public string StoragePath { get; }
-
-        private void TouchSaved()
-        {
-            _lastSaved = DateTime.Now;
-            this.RaisePropertyChanged(nameof(StatusText));
-        }
-
-        // ====== コマンド ======
-        public ReactiveCommand<Unit, Unit> AddCommand { get; }
-        public ReactiveCommand<Unit, Unit> ClearInputCommand { get; }
-        public ReactiveCommand<TodoItem, Unit> DeleteCommand { get; }
-        public ReactiveCommand<TodoItem, Unit> EditCommand { get; } // 簡易: タイトルを再入力するなど
-        public ReactiveCommand<TodoItem, Unit> ToggleCompletedCommand { get; }
-
-        // 並べ替え (DnD 用)
-        public async Task ReorderAsync(int oldIndex, int newIndex)
-        {
-            var list = Items.ToList();
-            await _controller.ReorderAsync(list, oldIndex, newIndex);
-            Items.Clear();
-            foreach (var it in list) Items.Add(it);
-            RefreshView();
-            TouchSaved();
-        }
-
-        // ====== Ctor ======
         public MainWindowViewModel(TodoController controller, ITodoStorage storage)
         {
             _controller = controller;
             _storage = storage;
 
-            // ストレージパス表示（Json 実装ならプロパティを足しておくと便利）
-            StoragePath = (storage as IStoragePathProvider)?.Path ?? "(local JSON)";
-
-            // --- コマンド定義 ---
             AddCommand = ReactiveCommand.CreateFromTask(async () =>
             {
                 var title = (NewTitle ?? "").Trim();
                 if (string.IsNullOrEmpty(title)) return;
 
-                var item = new TodoItem { Title = title, IsCompleted = false, DueDate = NewDueDate };
+                var item = new TodoItem { Title = title, DueDate = NewDueDate };
                 var list = Items.ToList();
                 await _controller.AddAsync(list, item);
-                Items.Add(item);
 
+                Items.Add(item);
                 NewTitle = "";
                 NewDueDate = null;
+
                 RefreshView();
                 TouchSaved();
             });
@@ -179,35 +55,128 @@ namespace TodoApp.ViewModels
 
             ToggleCompletedCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
             {
-                item.IsCompleted = !item.IsCompleted;
+                // TwoWay バインドにより IsCompleted は最新
                 var list = Items.ToList();
                 await _controller.UpdateAsync(list, item);
                 RefreshView();
                 TouchSaved();
             });
 
-            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
+            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async _ =>
             {
-                // シンプルな編集例：タイトル末尾に " (edited)" を付与
-                // 実運用ではダイアログやインライン編集に置き換え
-                item.Title = (item.Title ?? "") + " (edited)";
-                var list = Items.ToList();
-                await _controller.UpdateAsync(list, item);
-                RefreshView();
-                TouchSaved();
+                // 今はダイアログ無しのまま
+                await Task.CompletedTask;
             });
         }
 
-        // 初期化：呼び出し元（Window側）で await LoadAsync() してね
+        // ====== データ ======
+        public ObservableCollection<TodoItem> Items { get; } = new();
+
+        public System.Collections.Generic.IEnumerable<TodoItem> ViewItems =>
+            IsFilterActive ? Items.Where(i => !i.IsCompleted) :
+            IsFilterCompleted ? Items.Where(i => i.IsCompleted) : Items;
+
+        private string? _newTitle;
+        public string? NewTitle { get => _newTitle; set => this.RaiseAndSetIfChanged(ref _newTitle, value); }
+
+        private DateTimeOffset? _newDue;
+        public DateTimeOffset? NewDueDate { get => _newDue; set => this.RaiseAndSetIfChanged(ref _newDue, value); }
+
+        // ====== フィルタ ======
+        private bool _fa = true, _fA, _fC;
+
+        public bool IsFilterAll
+        {
+            get => _fa;
+            set
+            {
+                if (this.RaiseAndSetIfChanged(ref _fa, value))
+                {
+                    if (value)
+                    {
+                        _fA = _fC = false;
+                        this.RaisePropertyChanged(nameof(IsFilterActive));
+                        this.RaisePropertyChanged(nameof(IsFilterCompleted));
+                    }
+                    RefreshView();
+                }
+            }
+        }
+
+        public bool IsFilterActive
+        {
+            get => _fA;
+            set
+            {
+                if (this.RaiseAndSetIfChanged(ref _fA, value))
+                {
+                    if (value)
+                    {
+                        _fa = _fC = false;
+                        this.RaisePropertyChanged(nameof(IsFilterAll));
+                        this.RaisePropertyChanged(nameof(IsFilterCompleted));
+                    }
+                    RefreshView();
+                }
+            }
+        }
+
+        public bool IsFilterCompleted
+        {
+            get => _fC;
+            set
+            {
+                if (this.RaiseAndSetIfChanged(ref _fC, value))
+                {
+                    if (value)
+                    {
+                        _fa = _fA = false;
+                        this.RaisePropertyChanged(nameof(IsFilterAll));
+                        this.RaisePropertyChanged(nameof(IsFilterActive));
+                    }
+                    RefreshView();
+                }
+            }
+        }
+
+        // ====== 表示用 ======
+        private DateTime _lastSaved = DateTime.Now;
+        public string ItemsCountText => $"{Items.Count} tasks";
+        public string StatusText => $"Saved {_lastSaved:t}";
+        public string StoragePath => (_storage as IStoragePathProvider)?.Path ?? "(local)";
+
+        private void RefreshView()
+        {
+            this.RaisePropertyChanged(nameof(ViewItems));
+            this.RaisePropertyChanged(nameof(ItemsCountText));
+        }
+        private void TouchSaved() => this.RaisePropertyChanged(nameof(StatusText));
+
+        // ====== ロード ======
         public async Task LoadAsync()
         {
             var loaded = await _controller.LoadAsync();
+
+            // 初回データが空ならサンプル投入
+            if (loaded.Count == 0)
+            {
+                loaded.Add(new TodoItem { Title = "Homework Math", DueDate = new DateTime(DateTime.Now.Year, 12, 15), IsCompleted = false });
+                loaded.Add(new TodoItem { Title = "Quiz",           DueDate = new DateTime(DateTime.Now.Year, 10, 10), IsCompleted = false });
+                loaded.Add(new TodoItem { Title = "Work",           DueDate = DateTime.Now.Date.AddDays(-3),            IsCompleted = false });
+                loaded.Add(new TodoItem { Title = "Homework 2",     DueDate = DateTime.Now.Date.AddDays(-1),            IsCompleted = true  });
+                await _controller.SaveAsync(loaded);
+            }
+
             Items.Clear();
             foreach (var it in loaded) Items.Add(it);
             RefreshView();
         }
-    }
 
-    // Optional: ストレージのパスをUIに見せたい時の小インタフェース
-    public interface IStoragePathProvider { string Path { get; } }
+        // ====== コマンド ======
+        public ReactiveCommand<Unit, Unit> AddCommand { get; }
+        public ReactiveCommand<Unit, Unit> ClearInputCommand { get; }
+        public ReactiveCommand<TodoItem, Unit> DeleteCommand { get; }
+        public ReactiveCommand<TodoItem, Unit> EditCommand { get; }
+        public ReactiveCommand<TodoItem, Unit> ToggleCompletedCommand { get; }
+    }
 }

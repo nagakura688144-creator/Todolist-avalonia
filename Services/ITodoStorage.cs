@@ -1,17 +1,16 @@
+// Services/ITodoStorage.cs
 using System.Collections.Generic;
-using System.Threading.Tasks;
-// ★ namespace はあなたのプロジェクトに合わせる（例: TodolistAvalonia.Services）
-namespace TodolistAvalonia.Services
-{
-    using TodolistAvalonia.Models;
+using TodoApp.Models;
 
+namespace TodoApp.Services
+{
     public interface ITodoStorage
     {
-        Task<List<TodoItem>> LoadAsync();
-        Task SaveAsync(IEnumerable<TodoItem> items);
+        List<TodoItem> Load();
+        void Save(List<TodoItem> items);
     }
 
-    // UIに保存先パスを表示したい場合に使う（任意）
+    // 保存先のパスを表示するため用
     public interface IStoragePathProvider
     {
         string Path { get; }

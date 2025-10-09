@@ -1,19 +1,18 @@
-﻿using Avalonia;
-using Avalonia.ReactiveUI; // <-- add
+using Avalonia;
+using Avalonia.ReactiveUI; // ★これを追加
 using System;
 
 namespace TodoApp
 {
-    internal static class Program
+    internal class Program
     {
         [STAThread]
         public static void Main(string[] args) => BuildAvaloniaApp().StartWithClassicDesktopLifetime(args);
 
-        public static AppBuilder BuildAvaloniaApp() => AppBuilder
-            .Configure<App>()
-            .UsePlatformDetect()
-            .UseReactiveUI() // <-- important: ensures Rx uses UI thread (fixes InvalidOperationException)
-            // .WithInterFont() // optional: requires Avalonia.Fonts.Inter package
-            .LogToTrace();
+        public static AppBuilder BuildAvaloniaApp()
+            => AppBuilder.Configure<App>()
+                .UsePlatformDetect()
+                .LogToTrace()
+                .UseReactiveUI();
     }
 }

@@ -1,18 +1,51 @@
-# Avalonia To‑Do List (C# / .NET 8, MVVM)
+# TodoApp (Avalonia .NET)
 
-A cross‑platform to‑do app built with **Avalonia 11** and **ReactiveUI**. It demonstrates a clean MVVM architecture, a modern Fluent UI, and JSON persistence. Runs on Windows, macOS, and Linux.
+## Project Overview
+A simple cross-platform To-Do list app built with **Avalonia UI** and **C# (.NET 8)**.  
+Create, edit, complete, filter tasks and switch between dark/light themes.  
+📝Why useful: (e.g., “I needed a tiny, fast desktop to-do that works on Windows/Mac.”)
 
----
-## ✨ Features
-- Add, complete, and delete tasks
-- Filter by **All / Active / Completed**
-- Optional **due date** per task
-- **Save / Load** tasks to local JSON
-- Uses common GUI elements: **TextBox, Button, ListBox, CheckBox, ComboBox, DatePicker**
+## Features
+- Add / Edit / Delete tasks
+- Mark complete / uncomplete
+- Filters: **All / Active / Completed**
+- Optional due date (pill shows **red** when overdue)
+- Dark / Light theme toggle
+- Enter key adds a task
+- Persistent storage to local JSON
 
----
-## 🧰 Prerequisites
-- .NET SDK **8.x** (`dotnet --version`)
-- Avalonia templates (if you need to create the project from scratch):
-  ```bash
-  dotnet new install Avalonia.Templates
+## File Structure
+TodoApp/
+├─ App.axaml # App styles & resources
+├─ Program.cs
+├─ Models/
+│ └─ TodoItem.cs
+├─ Controllers/
+│ └─ TodoController.cs
+├─ Services/
+│ ├─ Storage.cs # ITodoStorage, JsonTodoStorage
+│ └─ IStoragePathProvider.cs
+├─ ViewModels/
+│ └─ MainWindowViewModel.cs
+├─ Views/
+│ ├─ MainWindow.axaml
+│ ├─ MainWindow.axaml.cs
+│ ├─ EditTitleDialog.axaml
+│ └─ EditTitleDialog.axaml.cs
+├─ Converters/
+│ ├─ BoolToTextDecorConverter.cs
+│ ├─ BoolToOpacityConverter.cs
+│ └─ BoolToBrushConverter.cs
+├─ Styles.axaml
+└─ README.md
+
+## Installation / Run
+### Prerequisites
+- .NET 8 SDK
+- macOS / Windows / Linux
+
+### Build & Run (dev)
+```bash
+dotnet restore
+dotnet build
+dotnet run -c Release

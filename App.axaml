@@ -1,9 +1,21 @@
-<Application
-    xmlns="https://github.com/avaloniaui"
-    xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-    x:Class="TodoApp.App">
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:converters="clr-namespace:TodoApp.Converters"
+             x:Class="TodoApp.App">
+
+  <!-- テーマ定義 -->
   <Application.Styles>
-    <FluentTheme/>
-    <StyleInclude Source="avares://TodoApp/Styles.axaml"/>
+    <FluentTheme />
+    <Style Selector="Window">
+      <Setter Property="Background" Value="{DynamicResource ThemeBackgroundBrush}" />
+      <Setter Property="Foreground" Value="{DynamicResource ThemeForegroundBrush}" />
+    </Style>
   </Application.Styles>
+
+  <!-- ★ ここにコンバータ等のリソースを置く -->
+  <Application.Resources>
+    <converters:BoolToTextDecorConverter x:Key="BoolToTextDecorConverter" />
+    <converters:BoolToOpacityConverter   x:Key="BoolToOpacityConverter" />
+    <converters:BoolToBrushConverter     x:Key="BoolToBrushConverter" />
+  </Application.Resources>
 </Application>

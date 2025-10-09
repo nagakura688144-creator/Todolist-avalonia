@@ -1,122 +1,175 @@
+<!-- Views/MainWindow.axaml -->
 <Window xmlns="https://github.com/avaloniaui"
         xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
-        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
-        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        xmlns:vm="clr-namespace:TodoApp.ViewModels"
         x:Class="TodoApp.Views.MainWindow"
         Width="900" Height="640"
-        mc:Ignorable="d">
-  <Design.DataContext>
-    <vm:MainWindowViewModel/>
-  </Design.DataContext>
+        Title="TodoApp">
 
-  <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="20">
+  <!-- ===== リソース ===== -->
+  <Window.Resources>
+    <SolidColorBrush x:Key="ClrInputBg"     Color="#F3F4F6"/>
+    <SolidColorBrush x:Key="ClrInputBorder" Color="#D1D5DB"/>
+    <SolidColorBrush x:Key="ClrText"        Color="#111827"/>
+    <SolidColorBrush x:Key="ClrBtnHover"    Color="#E5E7EB"/>
+    <SolidColorBrush x:Key="ClrItemBg"      Color="#FBFBFB"/>
+    <SolidColorBrush x:Key="ClrFocusBorder" Color="#93C5FD"/>
+  </Window.Resources>
+
+  <!-- ===== 共通スタイル（テンプレ内部は触らない） ===== -->
+  <Window.Styles>
+    <Style Selector="Button">
+      <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
+      <Setter Property="BorderBrush"  Value="{StaticResource ClrInputBorder}"/>
+      <Setter Property="Foreground"   Value="{StaticResource ClrText}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding"      Value="10,6"/>
+    </Style>
+    <Style Selector="Button:pointerover">
+      <Setter Property="Background" Value="{StaticResource ClrBtnHover}"/>
+    </Style>
+
+    <Style Selector="ToggleButton">
+      <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
+      <Setter Property="BorderBrush"  Value="{StaticResource ClrInputBorder}"/>
+      <Setter Property="Foreground"   Value="{StaticResource ClrText}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding"      Value="8,6"/>
+    </Style>
+    <Style Selector="ToggleButton:pointerover">
+      <Setter Property="Background" Value="{StaticResource ClrBtnHover}"/>
+    </Style>
+
+    <!-- TextBox 外観（Watermark色などは各 TextBox.Resources で上書き） -->
+    <Style Selector="TextBox">
+      <Setter Property="Foreground"   Value="{StaticResource ClrText}"/>
+      <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
+      <Setter Property="BorderBrush"  Value="{StaticResource ClrInputBorder}"/>
+      <Setter Property="CornerRadius" Value="8"/>
+      <Setter Property="Padding"      Value="10,8"/>
+    </Style>
+    <Style Selector="TextBox:focus">
+      <Setter Property="Foreground"   Value="{StaticResource ClrText}"/>
+      <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
+      <Setter Property="BorderBrush"  Value="{StaticResource ClrFocusBorder}"/>
+    </Style>
+
+    <!-- DatePicker の表示部（内部 TextBox） -->
+    <Style Selector="DatePicker TextBox">
+      <Setter Property="Foreground"  Value="{StaticResource ClrText}"/>
+      <Setter Property="Background"  Value="{StaticResource ClrInputBg}"/>
+      <Setter Property="BorderBrush" Value="{StaticResource ClrInputBorder}"/>
+    </Style>
+    <Style Selector="DatePicker TextBox:focus">
+      <Setter Property="BorderBrush" Value="{StaticResource ClrFocusBorder}"/>
+    </Style>
+  </Window.Styles>
+
+  <!-- ===== 本体 ===== -->
+  <StackPanel Margin="16" Spacing="8">
+
     <!-- ヘッダー -->
-    <DockPanel Grid.Row="0" Margin="0,0,0,12">
-      <TextBlock Classes="h1" Text="To-Do" DockPanel.Dock="Left"/>
-      <StackPanel Orientation="Horizontal" Spacing="8" DockPanel.Dock="Right">
-        <TextBlock Classes="caption" VerticalAlignment="Center"
-                   Text="{Binding ItemsCountText}"/>
-        <!-- テーマ切替 -->
-        <ToggleSwitch Content="Dark" IsChecked="{Binding IsDarkTheme}"
-                      VerticalAlignment="Center"/>
-      </StackPanel>
+    <DockPanel>
+      <TextBlock Text="To-Do" FontSize="22" FontWeight="SemiBold" DockPanel.Dock="Left"/>
+      <Border DockPanel.Dock="Right" Width="120" Background="Transparent"/>
     </DockPanel>
 
-    <!-- 入力エリア -->
-    <Border Grid.Row="1" Classes="todo-card">
-      <Grid ColumnDefinitions="*,Auto,Auto,Auto" ColumnSpacing="8">
-        <TextBox Watermark="Task title" Text="{Binding NewTitle}"/>
-        <DatePicker Grid.Column="1" SelectedDate="{Binding NewDueDate}"/>
-        <Button Grid.Column="2" Content="Add" Classes="accent"
-                Command="{Binding AddCommand}"/>
-        <Button Grid.Column="3" Content="Clear"
-                Command="{Binding ClearInputCommand}"/>
-      </Grid>
-    </Border>
+    <!-- 入力行 -->
+    <StackPanel Orientation="Horizontal" Spacing="8">
+      <!-- Task title：背景は薄グレー固定、入力中の文字は白 -->
+      <TextBox Width="400"
+               Watermark="Task title"
+               Text="{Binding NewTitle}">
+        <TextBox.Resources>
+          <!-- 入力文字・キャレットを白、背景は薄グレー固定 -->
+          <SolidColorBrush x:Key="TextControlForeground"         Color="#FFFFFF"/>
+          <SolidColorBrush x:Key="TextControlForegroundFocused"  Color="#FFFFFF"/>
+          <SolidColorBrush x:Key="TextControlCaretBrush"         Color="#FFFFFF"/>
+          <SolidColorBrush x:Key="TextControlBackground"         Color="#F3F4F6"/>
+          <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#F3F4F6"/>
+          <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#D1D5DB"/>
+          <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#93C5FD"/>
+          <!-- Watermark（未入力時の薄文字） -->
+          <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#6B7280"/>
+        </TextBox.Resources>
+        <TextBox.KeyBindings>
+          <KeyBinding Command="{Binding AddCommand}" Gesture="Enter"/>
+        </TextBox.KeyBindings>
+      </TextBox>
 
-    <!-- フィルタ（セグメント） -->
-    <StackPanel Grid.Row="1" Orientation="Horizontal" HorizontalAlignment="Left"
-                Margin="0,72,0,0" Spacing="8">
-      <ToggleButton Content="All"     Classes="segment"
-                    IsChecked="{Binding IsFilterAll}"/>
-      <ToggleButton Content="Active"  Classes="segment"
-                    IsChecked="{Binding IsFilterActive}"/>
-      <ToggleButton Content="Completed" Classes="segment"
-                    IsChecked="{Binding IsFilterCompleted}"/>
+      <!-- DatePicker：数字は黒、Watermarkは濃いグレー。背景は薄グレー固定 -->
+      <DatePicker SelectedDate="{Binding NewDueDate}" Width="360">
+        <DatePicker.Resources>
+          <SolidColorBrush x:Key="ThemeForegroundBrush"      Color="#111827"/>
+          <SolidColorBrush x:Key="ThemeForegroundLowBrush"   Color="#374151"/>
+          <SolidColorBrush x:Key="TextControlBackground"         Color="#F3F4F6"/>
+          <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#F3F4F6"/>
+          <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#D1D5DB"/>
+          <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#93C5FD"/>
+        </DatePicker.Resources>
+      </DatePicker>
+
+      <StackPanel Orientation="Horizontal" Spacing="8" VerticalAlignment="Center">
+        <Button Content="Add"   Command="{Binding AddCommand}"/>
+        <Button Content="Clear" Command="{Binding ClearInputCommand}"/>
+      </StackPanel>
     </StackPanel>
 
-    <!-- リスト -->
-    <ScrollViewer Grid.Row="2" Margin="0,8,0,8">
-      <ItemsControl Items="{Binding ViewItems}">
-        <ItemsControl.ItemTemplate>
-          <DataTemplate>
-            <Border Classes="todo-card">
-              <Grid ColumnDefinitions="Auto,*,Auto" ColumnSpacing="12">
-                <CheckBox IsChecked="{Binding IsCompleted}"
-                          Command="{Binding $parent[Window].DataContext.ToggleCompletedCommand}"
-                          CommandParameter="{Binding .}"/>
-                <StackPanel Grid.Column="1" Spacing="4">
-                  <TextBlock Text="{Binding Title}">
-                    <TextBlock.Styles>
-                      <Style Selector="TextBlock">
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsCompleted}" Value="True">
-                            <Setter Property="Classes" Value="todo-title-completed"/>
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </TextBlock.Styles>
-                  </TextBlock>
-                  <!-- 期日Pill（期限切れは赤） -->
-                  <Border Classes="due-pill">
-                    <Border.Styles>
-                      <Style Selector="Border">
-                        <Style.Triggers>
-                          <DataTrigger Binding="{Binding IsOverdue}" Value="True">
-                            <Setter Property="Classes" Value="due-pill overdue"/>
-                          </DataTrigger>
-                        </Style.Triggers>
-                      </Style>
-                    </Border.Styles>
-                    <TextBlock Classes="caption"
-                               Text="{Binding DueLabel}"/>
-                  </Border>
-                </StackPanel>
+    <!-- フィルタ -->
+    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
+      <ToggleButton Content="All"       IsChecked="{Binding IsFilterAll, Mode=TwoWay}"/>
+      <ToggleButton Content="Active"    IsChecked="{Binding IsFilterActive, Mode=TwoWay}"/>
+      <ToggleButton Content="Completed" IsChecked="{Binding IsFilterCompleted, Mode=TwoWay}"/>
+    </StackPanel>
 
-                <!-- アクション（ホバーで見せる雰囲気） -->
-                <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="6"
-                            Opacity="0.0">
-                  <Button Content="Edit"
-                          Command="{Binding $parent[Window].DataContext.EditCommand}"
-                          CommandParameter="{Binding .}"/>
-                  <Button Content="Delete"
-                          Command="{Binding $parent[Window].DataContext.DeleteCommand}"
-                          CommandParameter="{Binding .}"/>
-                </StackPanel>
+    <!-- 一覧 -->
+    <ItemsControl ItemsSource="{Binding ViewItems}">
+      <ItemsControl.ItemTemplate>
+        <DataTemplate>
+          <Border Padding="10" Margin="0,6"
+                  Background="{StaticResource ClrItemBg}"
+                  CornerRadius="10">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+
+              <!-- ✅ 枠は小さめ、青いチェックは既定のまま -->
+              <Grid Width="16" Height="16" VerticalAlignment="Center">
+                <!-- 黒い枠（角少し丸め） -->
+                <Border CornerRadius="3"
+                        BorderBrush="#111827"
+                        BorderThickness="1"/>
+                <!-- 実際のチェックボックス -->
+                <CheckBox IsChecked="{Binding IsCompleted, Mode=TwoWay}"
+                          Command="{Binding $parent[Window].DataContext.ToggleCompletedCommand}"
+                          CommandParameter="{Binding .}"
+                          Background="Transparent"/>
               </Grid>
 
-              <!-- ホバー時にアクション表示 -->
-              <Border.Styles>
-                <Style Selector="Border.todo-card:pointerover StackPanel:nth-child(1)~StackPanel">
-                  <Setter Property="Opacity" Value="1.0"/>
-                </Style>
-              </Border.Styles>
-            </Border>
-          </DataTemplate>
-        </ItemsControl.ItemTemplate>
-        <ItemsControl.Transitions>
-          <Transitions>
-            <CrossFade Duration="0:0:0.12"/>
-          </Transitions>
-        </ItemsControl.Transitions>
-      </ItemsControl>
-    </ScrollViewer>
+              <StackPanel Grid.Column="1" Margin="12,0,0,0">
+                <TextBlock Text="{Binding Title}"
+                           FontSize="14"
+                           TextDecorations="{Binding IsCompleted, Converter={StaticResource BoolToTextDecorConverter}}"
+                           Opacity="{Binding IsCompleted, Converter={StaticResource BoolToOpacityConverter}}"/>
+                <Border Padding="6,2"
+                        CornerRadius="999"
+                        HorizontalAlignment="Left"
+                        Background="{Binding IsOverdue, Converter={StaticResource BoolToBrushConverter}}">
+                  <TextBlock Text="{Binding DueLabel}" FontSize="12"/>
+                </Border>
+              </StackPanel>
 
-    <!-- ステータスバー -->
-    <DockPanel Grid.Row="3">
-      <TextBlock Classes="caption" Text="{Binding StatusText}" DockPanel.Dock="Left"/>
-      <TextBlock Classes="caption" Text="{Binding StoragePath}" DockPanel.Dock="Right"/>
-    </DockPanel>
-  </Grid>
+              <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
+                <Button Content="Edit"
+                        Command="{Binding $parent[Window].DataContext.EditCommand}"
+                        CommandParameter="{Binding .}"/>
+                <Button Content="Delete"
+                        Command="{Binding $parent[Window].DataContext.DeleteCommand}"
+                        CommandParameter="{Binding .}"/>
+              </StackPanel>
+
+            </Grid>
+          </Border>
+        </DataTemplate>
+      </ItemsControl.ItemTemplate>
+    </ItemsControl>
+
+  </StackPanel>
 </Window>

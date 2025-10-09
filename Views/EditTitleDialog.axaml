@@ -1,0 +1,17 @@
+<!-- Views/EditTitleDialog.axaml -->
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        x:Class="TodoApp.Views.EditTitleDialog"
+        Width="360" Height="160"
+        Title="Edit title"
+        WindowStartupLocation="CenterOwner">
+
+  <StackPanel Margin="12" Spacing="8">
+    <TextBlock Text="Title"/>
+    <TextBox Text="{Binding TitleText}" />
+    <StackPanel Orientation="Horizontal" HorizontalAlignment="Right" Spacing="8">
+      <Button Content="Cancel" Click="OnCancel"/>
+      <Button Content="OK" IsDefault="True" Click="OnOk"/>
+    </StackPanel>
+  </StackPanel>
+</Window>

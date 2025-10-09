@@ -1,12 +1,14 @@
-<ResourceDictionary
+<Styles
     xmlns="https://github.com/avaloniaui"
     xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml">
 
-  <!-- 基本トークン -->
-  <Color x:Key="AccentColor">#3B82F6</Color>
-  <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
-  <CornerRadius x:Key="RadiusM">12</CornerRadius>
-  <CornerRadius x:Key="RadiusL">20</CornerRadius>
+  <!-- リソースはここ -->
+  <Styles.Resources>
+    <Color x:Key="AccentColor">#3B82F6</Color>
+    <SolidColorBrush x:Key="AccentBrush" Color="{StaticResource AccentColor}"/>
+    <CornerRadius x:Key="RadiusM">12</CornerRadius>
+    <CornerRadius x:Key="RadiusL">20</CornerRadius>
+  </Styles.Resources>
 
   <!-- テキスト見出し -->
   <Style Selector="TextBlock.h1">
@@ -44,7 +46,8 @@
   </Style>
   <Style Selector="Border.due-pill.overdue">
     <Setter Property="Background" Value="#EF444444"/>
-    <Setter Property="Foreground" Value="White"/>
+    <!-- BorderにはForegroundが無いのでTextElement.Foregroundを使う -->
+    <Setter Property="TextElement.Foreground" Value="White"/>
   </Style>
 
-</ResourceDictionary>
+</Styles>

@@ -1,76 +1,67 @@
+// Services/JsonTodoStorage.cs
 using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.Json;
 using System.Threading.Tasks;
-// ★ namespace はあなたのプロジェクトに合わせる（例: TodolistAvalonia.Services）
-namespace TodolistAvalonia.Services
-{
-    using TodolistAvalonia.Models;
+using TodoApp.Models;
 
+namespace TodoApp.Services
+{
     /// <summary>
-    /// ローカルJSONでToDoを保存/読込する実装
+    /// JSON ファイルに ToDo を保存/読み込みする実装
     /// </summary>
     public class JsonTodoStorage : ITodoStorage, IStoragePathProvider
     {
-        public string Path { get; }
+        private readonly string _dir;
+        private readonly string _file;
 
-        public JsonTodoStorage(string appName = "TodoApp")
-        {
-            var baseDir = GetBaseConfigDir();
-            var appDir = System.IO.Path.Combine(baseDir, appName);
-            Directory.CreateDirectory(appDir);
-            Path = System.IO.Path.Combine(appDir, "todos.json");
-        }
+        // IStoragePathProvider 実装（保存先のファイル・パスを公開）
+        public string Path => _file;
 
-        public async Task<List<TodoItem>> LoadAsync()
+        public JsonTodoStorage()
         {
-            if (!File.Exists(Path)) return new List<TodoItem>();
-            await using var fs = File.OpenRead(Path);
-            var list = await JsonSerializer.DeserializeAsync<List<TodoItem>>(fs, JsonOptions);
-            return list ?? new List<TodoItem>();
-        }
+            // OS に依存しないユーザーデータ保存場所
+            var baseDir = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
 
-        public async Task SaveAsync(IEnumerable<TodoItem> items)
-        {
-            // 安全に書き込み（一時ファイル→置き換え）
-            var tmp = Path + ".tmp";
-            await using (var fs = File.Create(tmp))
+            // ★ ここは必ず System.IO.Path.Combine を使う
+            _dir  = System.IO.Path.Combine(baseDir, "TodoApp");
+            _file = System.IO.Path.Combine(_dir, "todos.json");
+
+            Directory.CreateDirectory(_dir);
+            if (!File.Exists(_file))
             {
-                await JsonSerializer.SerializeAsync(fs, items, JsonOptionsIndented);
+                File.WriteAllText(_file, "[]");
             }
-            if (File.Exists(Path)) File.Delete(Path);
-            File.Move(tmp, Path);
         }
 
-        // OSごとの「設定/データ保存」ディレクトリ
-        private static string GetBaseConfigDir()
+        // ---- 同期 API（ITodoStorage が同期用ならこちらが使われます）----
+        public List<TodoItem> Load()
         {
-            if (OperatingSystem.IsWindows())
+            try
             {
-                return Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData); // %APPDATA%
+                if (!File.Exists(_file)) return new List<TodoItem>();
+                var json = File.ReadAllText(_file);
+                return JsonSerializer.Deserialize<List<TodoItem>>(json) ?? new List<TodoItem>();
             }
-            if (OperatingSystem.IsMacOS())
+            catch
             {
-                // ~/Library/Application Support
-                var lib = Environment.GetFolderPath(Environment.SpecialFolder.ApplicationData);
-                // 一部 .NET 実装で ApplicationData が ~/Library/Application Support を返すため、そのまま利用
-                return lib;
+                return new List<TodoItem>();
             }
-            // Linux: ~/.config
-            var home = Environment.GetFolderPath(Environment.SpecialFolder.UserProfile);
-            return System.IO.Path.Combine(home, ".config");
         }
 
-        // JSON オプション
-        private static readonly JsonSerializerOptions JsonOptions = new()
+        public void Save(List<TodoItem> items)
         {
-            PropertyNameCaseInsensitive = true
-        };
+            var json = JsonSerializer.Serialize(items, new JsonSerializerOptions { WriteIndented = true });
+            File.WriteAllText(_file, json);
+        }
 
-        private static readonly JsonSerializerOptions JsonOptionsIndented = new()
+        // ---- 非同期ヘルパ（コントローラが Async を呼ぶ場合に対応）----
+        public Task<List<TodoItem>> LoadAsync() => Task.FromResult(Load());
+        public Task SaveAsync(List<TodoItem> items)
         {
-            WriteIndented = true
-        };
+            Save(items);
+            return Task.CompletedTask;
+        }
     }
 }
