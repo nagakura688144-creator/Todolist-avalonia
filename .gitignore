@@ -12,3 +12,6 @@ obj/
 
 # macOS
 .DS_Store
+
+*.pkg
+*.app
