@@ -79,11 +79,6 @@ namespace TodoApp.ViewModels
                 TouchSaved();
             });
 
-            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
-            {
-                await EditTodoAsync(item);
-            });
-
             ToggleSortCommand = ReactiveCommand.Create(() =>
             {
                 _isSortAscending = !_isSortAscending;
@@ -200,7 +195,6 @@ namespace TodoApp.ViewModels
         public ReactiveCommand<Unit, Unit> AddCommand { get; }
         public ReactiveCommand<Unit, Unit> ClearInputCommand { get; }
         public ReactiveCommand<TodoItem, Unit> DeleteCommand { get; }
-        public ReactiveCommand<TodoItem, Unit> EditCommand { get; }
         public ReactiveCommand<TodoItem, Unit> ToggleCompletedCommand { get; }
         public ReactiveCommand<Unit, Unit> ToggleSortCommand { get; }
 
@@ -222,31 +216,6 @@ namespace TodoApp.ViewModels
             }
         }
 
-        /// <summary>
-        /// Opens edit dialog for a TodoItem.
-        /// </summary>
-        private async Task EditTodoAsync(TodoItem item)
-        {
-            if (OwnerWindow == null) return;
 
-            var editVm = new EditTodoViewModel(item, _validationService);
-            var dialog = new Views.EditTodoDialog
-            {
-                DataContext = editVm
-            };
-
-            await dialog.ShowDialog(OwnerWindow);
-
-            if (dialog.WasSaved)
-            {
-                // Item is already updated by reference
-                var list = Items.ToList();
-                await _controller.UpdateAsync(list, item);
-                
-                ApplySorting();
-                RefreshView();
-                TouchSaved();
-            }
-        }
     }
 }
