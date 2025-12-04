@@ -15,7 +15,7 @@
     <SolidColorBrush x:Key="ClrFocusBorder" Color="#93C5FD"/>
   </Window.Resources>
 
-  <!-- ===== 共通スタイル（テンプレ内部は触らない） ===== -->
+  <!-- ===== 共通スタイル ===== -->
   <Window.Styles>
     <Style Selector="Button">
       <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
@@ -39,7 +39,6 @@
       <Setter Property="Background" Value="{StaticResource ClrBtnHover}"/>
     </Style>
 
-    <!-- TextBox 外観（Watermark色などは各 TextBox.Resources で上書き） -->
     <Style Selector="TextBox">
       <Setter Property="Foreground"   Value="{StaticResource ClrText}"/>
       <Setter Property="Background"   Value="{StaticResource ClrInputBg}"/>
@@ -53,7 +52,6 @@
       <Setter Property="BorderBrush"  Value="{StaticResource ClrFocusBorder}"/>
     </Style>
 
-    <!-- DatePicker の表示部（内部 TextBox） -->
     <Style Selector="DatePicker TextBox">
       <Setter Property="Foreground"  Value="{StaticResource ClrText}"/>
       <Setter Property="Background"  Value="{StaticResource ClrInputBg}"/>
@@ -75,12 +73,10 @@
 
     <!-- 入力行 -->
     <StackPanel Orientation="Horizontal" Spacing="8">
-      <!-- Task title：背景は薄グレー固定、入力中の文字は白 -->
       <TextBox Width="400"
                Watermark="Task title"
                Text="{Binding NewTitle}">
         <TextBox.Resources>
-          <!-- 入力文字・キャレットを白、背景は薄グレー固定 -->
           <SolidColorBrush x:Key="TextControlForeground"         Color="#FFFFFF"/>
           <SolidColorBrush x:Key="TextControlForegroundFocused"  Color="#FFFFFF"/>
           <SolidColorBrush x:Key="TextControlCaretBrush"         Color="#FFFFFF"/>
@@ -88,7 +84,6 @@
           <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#F3F4F6"/>
           <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#D1D5DB"/>
           <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#93C5FD"/>
-          <!-- Watermark（未入力時の薄文字） -->
           <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#6B7280"/>
         </TextBox.Resources>
         <TextBox.KeyBindings>
@@ -96,7 +91,6 @@
         </TextBox.KeyBindings>
       </TextBox>
 
-      <!-- DatePicker：数字は黒、Watermarkは濃いグレー。背景は薄グレー固定 -->
       <DatePicker SelectedDate="{Binding NewDueDate}" Width="360">
         <DatePicker.Resources>
           <SolidColorBrush x:Key="ThemeForegroundBrush"      Color="#111827"/>
@@ -116,14 +110,12 @@
 
     <!-- フィルタとソート -->
     <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
-      <!-- フィルタボタン -->
       <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
         <ToggleButton Content="All"       IsChecked="{Binding IsFilterAll, Mode=TwoWay}"/>
         <ToggleButton Content="Active"    IsChecked="{Binding IsFilterActive, Mode=TwoWay}"/>
         <ToggleButton Content="Completed" IsChecked="{Binding IsFilterCompleted, Mode=TwoWay}"/>
       </StackPanel>
       
-      <!-- ソートボタン -->
       <Button Grid.Column="1" 
               Content="{Binding SortButtonText}" 
               Command="{Binding ToggleSortCommand}"
@@ -137,15 +129,16 @@
           <Border Padding="10" Margin="0,6"
                   Background="{StaticResource ClrItemBg}"
                   CornerRadius="10">
-            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
+            
+            <Panel>
+              <!-- Normal view mode -->
+              <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center"
+                    IsVisible="{Binding !IsEditing}">
 
-              <!-- ✅ 枠は小さめ、青いチェックは既定のまま -->
               <Grid Width="16" Height="16" VerticalAlignment="Center">
-                <!-- 黒い枠（角少し丸め） -->
                 <Border CornerRadius="3"
                         BorderBrush="#111827"
                         BorderThickness="1"/>
-                <!-- 実際のチェックボックス -->
                 <CheckBox IsChecked="{Binding IsCompleted, Mode=TwoWay}"
                           Command="{Binding $parent[Window].DataContext.ToggleCompletedCommand}"
                           CommandParameter="{Binding .}"
@@ -174,7 +167,63 @@
                         CommandParameter="{Binding .}"/>
               </StackPanel>
 
-            </Grid>
+              </Grid>
+
+              <!-- Editing mode -->
+              <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center" 
+                    IsVisible="{Binding IsEditing}">
+              
+              <StackPanel Grid.Column="0" Spacing="8">
+                <TextBox Text="{Binding EditingTitle, Mode=TwoWay}"
+                         Watermark="Task title"
+                         MinWidth="300">
+                  <TextBox.Resources>
+                    <SolidColorBrush x:Key="TextControlForeground"         Color="#111827"/>
+                    <SolidColorBrush x:Key="TextControlForegroundFocused"  Color="#111827"/>
+                    <SolidColorBrush x:Key="TextControlCaretBrush"         Color="#111827"/>
+                    <SolidColorBrush x:Key="TextControlBackground"         Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#93C5FD"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3B82F6"/>
+                    <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#9CA3AF"/>
+                  </TextBox.Resources>
+                </TextBox>
+                
+                <DatePicker SelectedDate="{Binding EditingDueDate, Mode=TwoWay}"
+                            MinWidth="300">
+                  <DatePicker.Resources>
+                    <SolidColorBrush x:Key="ThemeForegroundBrush"          Color="#111827"/>
+                    <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#6B7280"/>
+                    <SolidColorBrush x:Key="TextControlBackground"         Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#FFFFFF"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#93C5FD"/>
+                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3B82F6"/>
+                  </DatePicker.Resources>
+                </DatePicker>
+              </StackPanel>
+
+              <Button Grid.Column="1" 
+                      Content="Edit"
+                      Command="{Binding $parent[Window].DataContext.SaveEditCommand}"
+                      CommandParameter="{Binding .}"
+                      Background="#10B981"
+                      Foreground="White"
+                      Margin="8,0,0,0"
+                      ToolTip.Tip="Save changes"/>
+
+              <Button Grid.Column="2" 
+                      Content="Cancel"
+                      Command="{Binding $parent[Window].DataContext.CancelEditCommand}"
+                      CommandParameter="{Binding .}"
+                      Background="#EF4444"
+                      Foreground="White"
+                      Margin="8,0,0,0"
+                      ToolTip.Tip="Cancel editing"/>
+
+              </Grid>
+
+            </Panel>
+
           </Border>
         </DataTemplate>
       </ItemsControl.ItemTemplate>
