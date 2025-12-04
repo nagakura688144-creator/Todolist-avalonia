@@ -1,157 +1,171 @@
-# TodoApp (Avalonia .NET)
+# TodoApp (Avalonia .NET) - Software Project 2
 
 ## Project Overview
-A simple, fast, cross-platform To-Do app built with **Avalonia UI** and **C# (.NET 8)**.  
-Create, edit, complete, filter tasks, set optional due dates, and switch dark/light themes.  
-**Why it’s useful:** lightweight desktop to-do that runs on **macOS / Windows / Linux** and stores data locally.
+
+This project is an enhanced version of a simple To-Do list application, upgraded to meet the requirements of **Software Project 2**. Originally a basic task manager, it has been significantly refactored to incorporate **SOLID design principles**, a **Creational Design Pattern (Factory)**, and comprehensive **unit testing**. The application is built with **Avalonia UI** and **C# (.NET 8)**, ensuring it is a fast, modern, and cross-platform desktop application that runs on macOS, Windows, and Linux.
+
+Key enhancements include a robust architecture, an advanced **Edit** function, and a powerful **Sort** capability, making it a more feature-rich and maintainable software project.
 
 ## Features
-- Add / Edit / Delete tasks
-- Mark complete / uncomplete
-- Filters: **All / Active / Completed**
-- Optional **due date** (badge turns **red** when overdue)
-- **Dark / Light** theme toggle
-- **Enter** key adds a task
-- **Persistent storage** to local JSON (auto-load on start, auto-save on exit)
+
+- **Add, Edit, and Delete Tasks**: Full CRUD (Create, Read, Update, Delete) functionality for managing tasks.
+- **Advanced Edit**: Modify a task's title and due date in a dedicated dialog.
+- **Sort by Due Date**: Toggle between sorting tasks by the earliest due date (ascending) and the latest due date (descending). Tasks without a due date are always placed at the bottom.
+- **Mark Complete/Incomplete**: Easily track task status with a checkbox.
+- **Filtering**: View tasks by **All**, **Active**, or **Completed** status.
+- **Due Date Management**: Set optional due dates. An overdue badge appears in **red** for tasks past their due date.
+- **Persistent Storage**: Tasks are automatically saved to a local JSON file on exit and loaded on startup.
+- **Cross-Platform**: Runs on macOS, Windows, and Linux.
+- **Dark/Light Theme**: Switch between visual themes.
+
+## SOLID Principles and Design Patterns
+
+This project was refactored to strictly adhere to SOLID principles and includes a creational design pattern, forming the core of its robust architecture.
+
+### 1. Single Responsibility Principle (SRP)
+
+Each class has a single, well-defined responsibility. Logic that was previously mixed in the `MainWindowViewModel` has been separated into dedicated services:
+
+- **`TodoValidationService`**: Responsible only for validating `TodoItem` data, such as ensuring titles are not empty.
+- **`TodoSortService`**: Manages the sorting of `TodoItem` lists by delegating to a specific `ISortStrategy`.
+- **`TodoItemFactory`**: Solely responsible for the creation of `TodoItem` objects, ensuring they are instantiated correctly.
+- **`TodoController`**: Acts as a mediator between the ViewModel and the storage layer, handling the core business logic of CRUD operations.
+
+### 2. Open/Closed Principle (OCP)
+
+The application is open for extension but closed for modification. This is primarily achieved using the **Strategy Pattern** for sorting:
+
+- **`ISortStrategy`**: An interface that defines a `Sort` method. New sorting algorithms (e.g., by title, by creation date) can be added by creating new classes that implement this interface without altering the existing `TodoSortService` or ViewModel.
+- **Implementations**: `DueDateAscendingSortStrategy` and `DueDateDescendingSortStrategy` are concrete implementations that provide different sorting behaviors.
+
+### 3. Liskov Substitution Principle (LSP)
+
+Subtypes are substitutable for their base types. The `ISortStrategy` implementations can be used interchangeably wherever the interface is expected, and the `InMemoryTodoStorage` (used for testing) is a perfect substitute for `ITodoStorage` without altering the `TodoController`'s behavior.
+
+### 4. Interface Segregation Principle (ISP)
+
+Interfaces are small and focused. Clients only depend on the methods they use.
+
+- **`ITodoStorage`**: Defines a minimal contract for loading and saving tasks (`Load`, `Save`).
+- **`IStoragePathProvider`**: A separate, small interface for exposing the storage file path, implemented only by classes that need to provide this information.
+- **`ITodoItemFactory`**: A focused interface for object creation.
+
+### 5. Dependency Inversion Principle (DIP)
+
+High-level modules do not depend on low-level modules; both depend on abstractions. This is achieved through **Dependency Injection (DI)**:
+
+- The `MainWindowViewModel` depends on abstractions like `ITodoStorage`, `ITodoItemFactory`, and `TodoSortService`, not on concrete implementations like `JsonTodoStorage`.
+- All dependencies are provided via the constructor, making the system loosely coupled, more testable, and easier to maintain.
+
+### Creational Design Pattern: Factory Pattern
+
+- **`TodoItemFactory`**: Implements the Factory Pattern to encapsulate the logic of creating `TodoItem` objects. This ensures that all `TodoItem` instances are created consistently, with valid state (e.g., a non-empty title and a new `Guid`). It decouples the ViewModel from the concrete `TodoItem` class's construction logic.
 
 ## File Structure
-TodoApp/
-├─ App.axaml # App styles & resources
-├─ Program.cs
-├─ Models/
-│ └─ TodoItem.cs
-├─ Controllers/
-│ └─ TodoController.cs
-├─ Services/
-│ ├─ Storage.cs # ITodoStorage, JsonTodoStorage
-│ └─ IStoragePathProvider.cs
-├─ ViewModels/
-│ └─ MainWindowViewModel.cs
-├─ Views/
-│ ├─ MainWindow.axaml
-│ ├─ MainWindow.axaml.cs
-│ ├─ EditTitleDialog.axaml
-│ └─ EditTitleDialog.axaml.cs
-├─ Converters/
-│ ├─ BoolToTextDecorConverter.cs
-│ ├─ BoolToOpacityConverter.cs
-│ └─ BoolToBrushConverter.cs
-├─ Styles.axaml
-└─ README.md
 
+The project is organized into multiple directories, reflecting the MVVM pattern and a clean separation of concerns.
 
-## Installation (End Users)
-### macOS (recommended)
-1. Download the **`.pkg` installer** from the Release page:  
-   👉 `https://github.com/<your-account>/Todolist-avalonia/releases/tag/v1.0.0`
-2. Open the `.pkg` and follow the wizard. The app installs to **/Applications/TodoApp.app**.
-3. First launch on macOS may be blocked (Gatekeeper). If so:  
-   **System Settings → Privacy & Security → “TodoApp.pkg was blocked” → *Open Anyway***  
-   または Finder で **TodoApp を右クリック → 開く**。
+```
+Todolist-avalonia/
+├── TodoApp/                  # Main Application Project
+│   ├── Models/
+│   │   └── TodoItem.cs
+│   ├── Controllers/
+│   │   └── TodoController.cs
+│   ├── Services/
+│   │   ├── ITodoStorage.cs
+│   │   ├── JsonTodoStorage.cs
+│   │   ├── ISortStrategy.cs
+│   │   ├── DueDateAscendingSortStrategy.cs
+│   │   ├── DueDateDescendingSortStrategy.cs
+│   │   ├── TodoSortService.cs
+│   │   └── TodoValidationService.cs
+│   ├── Factories/
+│   │   ├── ITodoItemFactory.cs
+│   │   └── TodoItemFactory.cs
+│   ├── ViewModels/
+│   │   ├── ViewModelBase.cs
+│   │   ├── MainWindowViewModel.cs
+│   │   └── EditTodoViewModel.cs
+│   ├── Views/
+│   │   ├── MainWindow.axaml
+│   │   └── EditTodoDialog.axaml
+│   ├── Converters/
+│   ├── TodoApp.csproj
+│   └── ...
+├── TodoApp.Tests/            # Unit Test Project
+│   ├── Models/
+│   │   └── TodoItemTests.cs
+│   ├── Controllers/
+│   │   └── TodoControllerTests.cs
+│   ├── Services/
+│   │   ├── SortStrategyTests.cs
+│   │   └── TodoValidationServiceTests.cs
+│   ├── Factories/
+│   │   └── TodoItemFactoryTests.cs
+│   └── TodoApp.Tests.csproj
+└── README.md
+```
 
-### Windows
-- (Optional for class) Download the **win-x64 self-contained zip** from Release (if provided), unzip, run `TodoApp.exe`.
+## Unit Testing
 
-### Linux
-- Run via `dotnet run` (dev) or publish a self-contained build (see Dev section).
+The project includes a dedicated test project (`TodoApp.Tests`) with **7 unit tests** to ensure code quality and correctness. The tests cover critical components of the application.
 
-## Installation / Run (Developers)
+- **`TodoItemFactoryTests` (3 tests)**: Verify that the `TodoItemFactory` correctly creates `TodoItem` objects with valid states, handles edge cases like empty titles, and assigns unique IDs.
+- **`TodoControllerTests` (2 tests)**: Test the core business logic for adding and updating tasks, ensuring the controller correctly interacts with the `ITodoStorage` dependency.
+- **`SortStrategyTests` (2 tests)**: Confirm that the sorting strategies correctly order tasks by due date and properly handle tasks without a due date, placing them at the end of the list.
+
+To run the tests, navigate to the root directory and execute:
+
+```bash
+dotnet test
+```
+
+## Installation and Running
+
 ### Prerequisites
 - **.NET 8 SDK**
-- macOS / Windows / Linux
 
-### Build & Run (dev)
-```bash
-dotnet restore
-dotnet build
-dotnet run -c Release
+### Build & Run (Development)
 
-Publish (self-contained examples)
-# macOS Apple Silicon
-dotnet publish -c Release -r osx-arm64 --self-contained true
+1. Clone the repository:
+   ```bash
+   git clone https://github.com/nagakura688144-creator/Todolist-avalonia.git
+   cd Todolist-avalonia
+   ```
 
-# Windows
-dotnet publish -c Release -r win-x64 --self-contained true
+2. Restore dependencies and run the application:
+   ```bash
+   dotnet restore
+   dotnet run --project TodoApp/TodoApp.csproj
+   ```
 
-macOS Installer (.pkg) – how we built it
+## How Data Is Stored
 
-For repeatable packaging, we build the app bundle and then a .pkg:
+- **Format**: Data is stored as a JSON array of task objects.
+- **Location**: The data file (`todos.json`) is stored in the standard application data directory for the user's operating system (e.g., `~/Library/Application Support/TodoApp` on macOS, `%AppData%\TodoApp` on Windows).
 
-# Build (self-contained)
-dotnet publish -c Release -r osx-arm64 --self-contained true
+## Debugging Summary
 
-# If your build already creates TodoApp.app, skip the next block.
-# Otherwise, assemble a minimal .app bundle (Info.plist + MacOS payload).
+During development, several challenges were addressed:
 
-# Create installer from the .app bundle (install target: /Applications)
-productbuild --component "./TodoApp.app" /Applications "TodoApp-<YYYYMMDD>-mac.pkg"
+1.  **.NET SDK Not Found**: The initial sandbox environment did not have the .NET SDK installed. This was resolved by downloading and executing the official `dotnet-install.sh` script to set up the required .NET 8 environment.
 
+2.  **Build Failures due to Project References**: When the `TodoApp.Tests` project was created, the main `TodoApp` project incorrectly tried to compile the test files, leading to numerous compilation errors (e.g., `FactAttribute not found`). This was resolved by explicitly excluding the test files from the main project's `.csproj` file:
+    ```xml
+    <ItemGroup>
+      <Compile Remove="TodoApp.Tests/**/*.cs" />
+    </ItemGroup>
+    ```
 
-First launch may require right-click → Open due to the app being unsigned for coursework.
+3.  **Dialog Ownership**: The `EditTodoDialog` required a reference to its parent window to display correctly as a modal dialog. This was fixed by passing a reference of the `MainWindow` to the `MainWindowViewModel` and using it when calling `dialog.ShowDialog(OwnerWindow)`.
 
-API Usage Details
+## Release
 
-This app does not call external web APIs. It uses:
+A release page for version `v2.0.0` will be created on GitHub, containing installable packages for macOS and Windows.
 
-Avalonia UI for cross-platform UI
+## Credits and Acknowledgements
 
-ReactiveUI patterns (where applicable)
-
-System.Text.Json for local persistence
-
-If you add APIs later, document endpoints, keys, and request/response examples here.
-
-How Data Is Stored
-
-Format: JSON array of tasks
-Example:
-
-[
-  { "id": "guid", "title": "Buy milk", "isDone": false, "due": "2025-10-09" }
-]
-
-
-macOS path: ~/Library/Application Support/TodoApp/tasks.json
-
-Windows path: %AppData%\TodoApp\tasks.json
-
-Linux path: ~/.local/share/TodoApp/tasks.json
-
-Data is auto-loaded on startup and auto-saved on exit.
-
-Known Issues / Limitations
-
-macOS Gatekeeper may block first launch (unsigned app). Use right-click → Open.
-
-No cloud sync (local JSON only).
-
-Single window; no multi-workspace yet.
-
-Debugging Summary
-
-Gatekeeper block: Users could not open .pkg or .app.
-Fix: Instructed to allow in Privacy & Security or use xattr -dr com.apple.quarantine.
-
-Missing save file/dir: On first run, storage directory might not exist.
-Fix: Create directory on startup; handle file-not-found with empty list.
-
-Overdue badge logic: Date parsing edge cases fixed by normalizing to local date.
-
-Release
-
-GitHub Release (installer attached):
-https://github.com/<your-account>/Todolist-avalonia/releases/tag/v1.0.0
-
-Assets include:
-
-TodoApp-<YYYYMMDD>-mac.pkg (macOS installer)
-
-(optional) TodoApp-win-x64.zip (Windows self-contained)
-
-Credits & Acknowledgements
-
-Avalonia UI documentation & samples
-
-.NET / C# docs
-
-Class materials and reviewers
+- **Avalonia UI**: For the excellent cross-platform UI framework.
+- **.NET Team**: For the powerful and versatile .NET 8 SDK.
+- **AI Assistants**: For providing guidance on architecture, debugging, and implementation.
