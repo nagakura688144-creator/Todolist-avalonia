@@ -4,12 +4,11 @@
 
 This project is an enhanced version of a simple To-Do list application, upgraded to meet the requirements of **Software Project 2**. Originally a basic task manager, it has been significantly refactored to incorporate **SOLID design principles**, a **Creational Design Pattern (Factory)**, and comprehensive **unit testing**. The application is built with **Avalonia UI** and **C# (.NET 8)**, ensuring it is a fast, modern, and cross-platform desktop application that runs on macOS, Windows, and Linux.
 
-Key enhancements include a robust architecture, an advanced **Edit** function, and a powerful **Sort** capability, making it a more feature-rich and maintainable software project.
+Key enhancements include a robust architecture and a powerful **Sort** capability, making it a more feature-rich and maintainable software project.
 
 ## Features
 
-- **Add, Edit, and Delete Tasks**: Full CRUD (Create, Read, Update, Delete) functionality for managing tasks.
-- **Advanced Edit**: Modify a task's title and due date in a dedicated dialog.
+- **Add and Delete Tasks**: Create and remove tasks.
 - **Sort by Due Date**: Toggle between sorting tasks by the earliest due date (ascending) and the latest due date (descending). Tasks without a due date are always placed at the bottom.
 - **Mark Complete/Incomplete**: Easily track task status with a checkbox.
 - **Filtering**: View tasks by **All**, **Active**, or **Completed** status.
@@ -140,10 +139,35 @@ dotnet test
    dotnet run --project TodoApp/TodoApp.csproj
    ```
 
+## API Usage Details
+
+This is a desktop GUI application built with Avalonia. The primary "API" for end users is the window UI.
+
+- **Main Input Row**
+  - **Task title**: Type a task name into the text box and press the **Add** button or hit **Enter** to create a new task.
+  - **Due date (optional)**: Use the date picker to set a due date. Leaving it empty creates a task without a due date.
+  - **Clear input**: The **Clear** button resets both the title and due date fields.
+
+- **Task List Area**
+  - **Completion toggle**: Click the checkbox to mark a task as complete/incomplete. Completed tasks become faded with a strikethrough.
+  - **Due date badge**: Shows the due date label; the badge turns **red** when the task is overdue.
+  - **Delete**: The **Delete** button removes the selected task from the list and from storage.
+
+- **Filtering and Sorting**
+  - **Filter buttons**: `All`, `Active`, `Completed` filter the visible tasks without changing the stored data.
+  - **Sort by due date**: The sort button toggles between **↑ Earliest First** and **↓ Latest First**. Tasks without a due date always appear at the bottom.
+
 ## How Data Is Stored
 
 - **Format**: Data is stored as a JSON array of task objects.
 - **Location**: The data file (`todos.json`) is stored in the standard application data directory for the user's operating system (e.g., `~/Library/Application Support/TodoApp` on macOS, `%AppData%\TodoApp` on Windows).
+
+## Known Issues / Limitations
+
+- **No in-place editing**: Once a task is created, its title and due date cannot be edited; you must delete and recreate the task if you need to change it.
+- **Single-user local storage**: Tasks are stored only on the local machine; there is no cloud sync or multi-user support.
+- **No input localization**: The UI text is in English only, and date formatting follows the OS locale, which may differ from documentation screenshots.
+- **Basic validation**: Title validation is minimal (non-empty strings); more advanced validation (e.g., max length, forbidden characters) is not enforced.
 
 ## Debugging Summary
 
@@ -160,9 +184,10 @@ During development, several challenges were addressed:
 
 3.  **Dialog Ownership**: The `EditTodoDialog` required a reference to its parent window to display correctly as a modal dialog. This was fixed by passing a reference of the `MainWindow` to the `MainWindowViewModel` and using it when calling `dialog.ShowDialog(OwnerWindow)`.
 
-## Release
+## Git & Release
 
-A release page for version `v2.0.0` will be created on GitHub, containing installable packages for macOS and Windows.
+- **Repository & branches**: The project is hosted on GitHub with a stable `main` branch and an experimental feature branch (for example, `feature/software-project-2-enhancements`) used for development and merges.
+- **Releases**: A release page for version `v2.0.0` is planned on GitHub, containing installable packages for macOS and Windows.
 
 ## Credits and Acknowledgements
 

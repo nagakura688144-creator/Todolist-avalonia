@@ -166,9 +166,6 @@
               </StackPanel>
 
               <StackPanel Grid.Column="2" Orientation="Horizontal" Spacing="8" Margin="12,0,0,0" VerticalAlignment="Center">
-                <Button Content="Edit"
-                        Command="{Binding $parent[Window].DataContext.EditCommand}"
-                        CommandParameter="{Binding .}"/>
                 <Button Content="Delete"
                         Command="{Binding $parent[Window].DataContext.DeleteCommand}"
                         CommandParameter="{Binding .}"/>

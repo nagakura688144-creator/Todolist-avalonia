@@ -15,7 +15,6 @@
 - [ ] Creational Design Pattern（Factory/Builder）
 
 ### 追加機能要件
-- [ ] Edit機能（Todo項目の名前と日程の変更）
 - [ ] ソート機能（日程の昇順/降順、日程なしは最下部）
 
 ## SOLID原則の適用計画
@@ -86,20 +85,7 @@ public class TodoItemFactory : ITodoItemFactory
 
 ## 新機能実装計画
 
-### 1. Edit機能
-
-**必要なコンポーネント:**
-- `Views/EditTodoDialog.axaml` - 編集ダイアログUI
-- `ViewModels/EditTodoViewModel.cs` - 編集用ViewModel
-- `MainWindowViewModel.EditCommand` の実装
-
-**実装手順:**
-1. EditTodoDialog作成（Title, DueDateの編集フィールド）
-2. EditTodoViewModel作成（バリデーション含む）
-3. MainWindowViewModelのEditCommandを実装
-4. TodoControllerにUpdateメソッド追加（既存のUpdateAsyncを拡張）
-
-### 2. ソート機能
+### ソート機能
 
 **必要なコンポーネント:**
 - `Services/ISortStrategy.cs` - ソート戦略インターフェース
