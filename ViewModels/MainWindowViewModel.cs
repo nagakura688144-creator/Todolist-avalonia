@@ -8,6 +8,7 @@ using System.Threading.Tasks;
 using TodoApp.Controllers;
 using TodoApp.Models;
 using TodoApp.Services;
+using TodoApp.Factories;
 
 namespace TodoApp.ViewModels
 {
@@ -15,18 +16,33 @@ namespace TodoApp.ViewModels
     {
         private readonly TodoController _controller;
         private readonly ITodoStorage _storage;
+        private readonly ITodoItemFactory _factory;
+        private readonly TodoSortService _sortService;
+        private readonly TodoValidationService _validationService;
+        private bool _isSortAscending = true;
+        
+        // Reference to main window for dialog display
+        public Avalonia.Controls.Window? OwnerWindow { get; set; }
 
-        public MainWindowViewModel(TodoController controller, ITodoStorage storage)
+        public MainWindowViewModel(
+            TodoController controller, 
+            ITodoStorage storage,
+            ITodoItemFactory factory,
+            TodoSortService sortService,
+            TodoValidationService validationService)
         {
             _controller = controller;
             _storage = storage;
+            _factory = factory;
+            _sortService = sortService;
+            _validationService = validationService;
 
             AddCommand = ReactiveCommand.CreateFromTask(async () =>
             {
-                var title = (NewTitle ?? "").Trim();
-                if (string.IsNullOrEmpty(title)) return;
+                var title = _validationService.SanitizeTitle(NewTitle);
+                if (!_validationService.IsValidTitle(title)) return;
 
-                var item = new TodoItem { Title = title, DueDate = NewDueDate };
+                var item = _factory.Create(title, NewDueDate);
                 var list = Items.ToList();
                 await _controller.AddAsync(list, item);
 
@@ -34,6 +50,7 @@ namespace TodoApp.ViewModels
                 NewTitle = "";
                 NewDueDate = null;
 
+                ApplySorting();
                 RefreshView();
                 TouchSaved();
             });
@@ -62,10 +79,17 @@ namespace TodoApp.ViewModels
                 TouchSaved();
             });
 
-            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async _ =>
+            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
             {
-                // 今はダイアログ無しのまま
-                await Task.CompletedTask;
+                await EditTodoAsync(item);
+            });
+
+            ToggleSortCommand = ReactiveCommand.Create(() =>
+            {
+                _isSortAscending = !_isSortAscending;
+                ApplySorting();
+                RefreshView();
+                this.RaisePropertyChanged(nameof(SortButtonText));
             });
         }
 
@@ -178,5 +202,51 @@ namespace TodoApp.ViewModels
         public ReactiveCommand<TodoItem, Unit> DeleteCommand { get; }
         public ReactiveCommand<TodoItem, Unit> EditCommand { get; }
         public ReactiveCommand<TodoItem, Unit> ToggleCompletedCommand { get; }
+        public ReactiveCommand<Unit, Unit> ToggleSortCommand { get; }
+
+        // ====== ソート関連 ======
+        public string SortButtonText => _isSortAscending ? "↑ Earliest First" : "↓ Latest First";
+
+        private void ApplySorting()
+        {
+            var strategy = _isSortAscending 
+                ? (ISortStrategy)new DueDateAscendingSortStrategy() 
+                : new DueDateDescendingSortStrategy();
+            
+            var sorted = _sortService.Sort(Items, strategy).ToList();
+            
+            Items.Clear();
+            foreach (var item in sorted)
+            {
+                Items.Add(item);
+            }
+        }
+
+        /// <summary>
+        /// Opens edit dialog for a TodoItem.
+        /// </summary>
+        private async Task EditTodoAsync(TodoItem item)
+        {
+            if (OwnerWindow == null) return;
+
+            var editVm = new EditTodoViewModel(item, _validationService);
+            var dialog = new Views.EditTodoDialog
+            {
+                DataContext = editVm
+            };
+
+            await dialog.ShowDialog(OwnerWindow);
+
+            if (dialog.WasSaved)
+            {
+                // Item is already updated by reference
+                var list = Items.ToList();
+                await _controller.UpdateAsync(list, item);
+                
+                ApplySorting();
+                RefreshView();
+                TouchSaved();
+            }
+        }
     }
 }
