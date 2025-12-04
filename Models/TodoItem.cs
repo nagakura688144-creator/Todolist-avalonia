@@ -12,5 +12,10 @@ namespace TodoApp.Models
 
         [JsonIgnore] public string DueLabel => DueDate.HasValue ? $"Due: {DueDate.Value:MMM dd}" : "No due";
         [JsonIgnore] public bool IsOverdue => DueDate.HasValue && !IsCompleted && DueDate.Value.Date < DateTimeOffset.Now.Date;
+        
+        // For inline editing mode
+        [JsonIgnore] public bool IsEditing { get; set; }
+        [JsonIgnore] public string EditingTitle { get; set; } = "";
+        [JsonIgnore] public DateTimeOffset? EditingDueDate { get; set; }
     }
 }
