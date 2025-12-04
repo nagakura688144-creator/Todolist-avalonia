@@ -39,7 +39,7 @@
       <Button Content="Cancel" 
               Width="100" 
               Click="OnCancel"/>
-      <Button Content="Save" 
+      <Button Content="Edit" 
               Width="100"
               IsDefault="True" 
               IsEnabled="{Binding IsValid}"

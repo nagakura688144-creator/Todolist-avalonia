@@ -129,16 +129,15 @@
           <Border Padding="10" Margin="0,6"
                   Background="{StaticResource ClrItemBg}"
                   CornerRadius="10">
-            
-            <Panel>
-              <!-- Normal view mode -->
-              <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center"
-                    IsVisible="{Binding !IsEditing}">
+            <Grid ColumnDefinitions="Auto,*,Auto" VerticalAlignment="Center">
 
+              <!-- ✅ 枠は小さめ、青いチェックは既定のまま -->
               <Grid Width="16" Height="16" VerticalAlignment="Center">
+                <!-- 黒い枠（角少し丸め） -->
                 <Border CornerRadius="3"
                         BorderBrush="#111827"
                         BorderThickness="1"/>
+                <!-- 実際のチェックボックス -->
                 <CheckBox IsChecked="{Binding IsCompleted, Mode=TwoWay}"
                           Command="{Binding $parent[Window].DataContext.ToggleCompletedCommand}"
                           CommandParameter="{Binding .}"
@@ -167,63 +166,7 @@
                         CommandParameter="{Binding .}"/>
               </StackPanel>
 
-              </Grid>
-
-              <!-- Editing mode -->
-              <Grid ColumnDefinitions="*,Auto,Auto" VerticalAlignment="Center" 
-                    IsVisible="{Binding IsEditing}">
-              
-              <StackPanel Grid.Column="0" Spacing="8">
-                <TextBox Text="{Binding EditingTitle, Mode=TwoWay}"
-                         Watermark="Task title"
-                         MinWidth="300">
-                  <TextBox.Resources>
-                    <SolidColorBrush x:Key="TextControlForeground"         Color="#111827"/>
-                    <SolidColorBrush x:Key="TextControlForegroundFocused"  Color="#111827"/>
-                    <SolidColorBrush x:Key="TextControlCaretBrush"         Color="#111827"/>
-                    <SolidColorBrush x:Key="TextControlBackground"         Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#93C5FD"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3B82F6"/>
-                    <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#9CA3AF"/>
-                  </TextBox.Resources>
-                </TextBox>
-                
-                <DatePicker SelectedDate="{Binding EditingDueDate, Mode=TwoWay}"
-                            MinWidth="300">
-                  <DatePicker.Resources>
-                    <SolidColorBrush x:Key="ThemeForegroundBrush"          Color="#111827"/>
-                    <SolidColorBrush x:Key="ThemeForegroundLowBrush"       Color="#6B7280"/>
-                    <SolidColorBrush x:Key="TextControlBackground"         Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="TextControlBackgroundFocused"  Color="#FFFFFF"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrush"        Color="#93C5FD"/>
-                    <SolidColorBrush x:Key="TextControlBorderBrushFocused" Color="#3B82F6"/>
-                  </DatePicker.Resources>
-                </DatePicker>
-              </StackPanel>
-
-              <Button Grid.Column="1" 
-                      Content="Edit"
-                      Command="{Binding $parent[Window].DataContext.SaveEditCommand}"
-                      CommandParameter="{Binding .}"
-                      Background="#10B981"
-                      Foreground="White"
-                      Margin="8,0,0,0"
-                      ToolTip.Tip="Save changes"/>
-
-              <Button Grid.Column="2" 
-                      Content="Cancel"
-                      Command="{Binding $parent[Window].DataContext.CancelEditCommand}"
-                      CommandParameter="{Binding .}"
-                      Background="#EF4444"
-                      Foreground="White"
-                      Margin="8,0,0,0"
-                      ToolTip.Tip="Cancel editing"/>
-
-              </Grid>
-
-            </Panel>
-
+            </Grid>
           </Border>
         </DataTemplate>
       </ItemsControl.ItemTemplate>

@@ -79,19 +79,9 @@ namespace TodoApp.ViewModels
                 TouchSaved();
             });
 
-            EditCommand = ReactiveCommand.Create<TodoItem>(item =>
+            EditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
             {
-                StartEditing(item);
-            });
-
-            SaveEditCommand = ReactiveCommand.CreateFromTask<TodoItem>(async item =>
-            {
-                await SaveEditAsync(item);
-            });
-
-            CancelEditCommand = ReactiveCommand.Create<TodoItem>(item =>
-            {
-                CancelEditing(item);
+                await EditTodoAsync(item);
             });
 
             ToggleSortCommand = ReactiveCommand.Create(() =>
@@ -211,8 +201,6 @@ namespace TodoApp.ViewModels
         public ReactiveCommand<Unit, Unit> ClearInputCommand { get; }
         public ReactiveCommand<TodoItem, Unit> DeleteCommand { get; }
         public ReactiveCommand<TodoItem, Unit> EditCommand { get; }
-        public ReactiveCommand<TodoItem, Unit> SaveEditCommand { get; }
-        public ReactiveCommand<TodoItem, Unit> CancelEditCommand { get; }
         public ReactiveCommand<TodoItem, Unit> ToggleCompletedCommand { get; }
         public ReactiveCommand<Unit, Unit> ToggleSortCommand { get; }
 
@@ -235,57 +223,30 @@ namespace TodoApp.ViewModels
         }
 
         /// <summary>
-        /// Start inline editing mode for a TodoItem.
+        /// Opens modal edit dialog for a TodoItem.
         /// </summary>
-        private void StartEditing(TodoItem item)
+        private async Task EditTodoAsync(TodoItem item)
         {
-            // Cancel any other item that might be in edit mode
-            foreach (var i in Items)
+            if (OwnerWindow == null) return;
+
+            var editVm = new EditTodoViewModel(item, _validationService);
+            var dialog = new Views.EditTodoDialog
             {
-                if (i.IsEditing && i != item)
-                {
-                    i.IsEditing = false;
-                }
-            }
+                DataContext = editVm
+            };
 
-            item.EditingTitle = item.Title;
-            item.EditingDueDate = item.DueDate;
-            item.IsEditing = true;
-            RefreshView();
-        }
+            await dialog.ShowDialog(OwnerWindow);
 
-        /// <summary>
-        /// Save the edited TodoItem.
-        /// </summary>
-        private async Task SaveEditAsync(TodoItem item)
-        {
-            var title = _validationService.SanitizeTitle(item.EditingTitle);
-            if (!_validationService.IsValidTitle(title))
+            if (dialog.WasSaved)
             {
-                // Invalid title, cancel editing
-                CancelEditing(item);
-                return;
+                // Item is already updated by reference
+                var list = Items.ToList();
+                await _controller.UpdateAsync(list, item);
+                
+                ApplySorting();
+                RefreshView();
+                TouchSaved();
             }
-
-            item.Title = title;
-            item.DueDate = item.EditingDueDate;
-            item.IsEditing = false;
-
-            var list = Items.ToList();
-            await _controller.UpdateAsync(list, item);
-            
-            ApplySorting();
-            RefreshView();
-            TouchSaved();
-        }
-
-        /// <summary>
-        /// Cancel editing mode without saving.
-        /// </summary>
-        private void CancelEditing(TodoItem item)
-        {
-            item.IsEditing = false;
-            RefreshView();
         }
     }
 }
