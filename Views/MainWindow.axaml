@@ -114,12 +114,21 @@
       </StackPanel>
     </StackPanel>
 
-    <!-- フィルタ -->
-    <StackPanel Orientation="Horizontal" Spacing="10" Margin="0,4,0,0">
-      <ToggleButton Content="All"       IsChecked="{Binding IsFilterAll, Mode=TwoWay}"/>
-      <ToggleButton Content="Active"    IsChecked="{Binding IsFilterActive, Mode=TwoWay}"/>
-      <ToggleButton Content="Completed" IsChecked="{Binding IsFilterCompleted, Mode=TwoWay}"/>
-    </StackPanel>
+    <!-- フィルタとソート -->
+    <Grid ColumnDefinitions="*,Auto" Margin="0,4,0,0">
+      <!-- フィルタボタン -->
+      <StackPanel Grid.Column="0" Orientation="Horizontal" Spacing="10">
+        <ToggleButton Content="All"       IsChecked="{Binding IsFilterAll, Mode=TwoWay}"/>
+        <ToggleButton Content="Active"    IsChecked="{Binding IsFilterActive, Mode=TwoWay}"/>
+        <ToggleButton Content="Completed" IsChecked="{Binding IsFilterCompleted, Mode=TwoWay}"/>
+      </StackPanel>
+      
+      <!-- ソートボタン -->
+      <Button Grid.Column="1" 
+              Content="{Binding SortButtonText}" 
+              Command="{Binding ToggleSortCommand}"
+              ToolTip.Tip="Toggle sort order by due date"/>
+    </Grid>
 
     <!-- 一覧 -->
     <ItemsControl ItemsSource="{Binding ViewItems}">

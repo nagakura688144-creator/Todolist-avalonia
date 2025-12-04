@@ -4,6 +4,7 @@ using Avalonia.Controls;
 using TodoApp.Controllers;
 using TodoApp.Services;
 using TodoApp.ViewModels;
+using TodoApp.Factories;
 
 namespace TodoApp.Views
 {
@@ -18,7 +19,11 @@ namespace TodoApp.Views
 
             var storage = new JsonTodoStorage();
             var controller = new TodoController(storage);
-            var vm = new MainWindowViewModel(controller, storage);
+            var factory = new TodoItemFactory();
+            var sortService = new TodoSortService(new DueDateAscendingSortStrategy());
+            var validationService = new TodoValidationService();
+            var vm = new MainWindowViewModel(controller, storage, factory, sortService, validationService);
+            vm.OwnerWindow = this;
 
             DataContext = vm;
 

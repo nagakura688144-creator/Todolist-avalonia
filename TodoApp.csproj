@@ -18,4 +18,11 @@
   <ItemGroup>
     <AvaloniaResource Include="Styles.axaml" />
   </ItemGroup>
+
+  <!-- Exclude test files from main project -->
+  <ItemGroup>
+    <Compile Remove="TodoApp.Tests/**/*.cs" />
+    <EmbeddedResource Remove="TodoApp.Tests/**/*" />
+    <None Remove="TodoApp.Tests/**/*" />
+  </ItemGroup>
 </Project>
