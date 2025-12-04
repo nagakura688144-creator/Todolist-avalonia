@@ -9,7 +9,7 @@ Key enhancements include a robust architecture, an advanced **Edit** function, a
 ## Features
 
 - **Add, Edit, and Delete Tasks**: Full CRUD (Create, Read, Update, Delete) functionality for managing tasks.
-- **Advanced Edit**: Modify a task's title and due date in a dedicated dialog.
+- **Inline Editing**: Click "Edit" to modify a task's title and due date directly in the list. Save or cancel with dedicated buttons.
 - **Sort by Due Date**: Toggle between sorting tasks by the earliest due date (ascending) and the latest due date (descending). Tasks without a due date are always placed at the bottom.
 - **Mark Complete/Incomplete**: Easily track task status with a checkbox.
 - **Filtering**: View tasks by **All**, **Active**, or **Completed** status.
